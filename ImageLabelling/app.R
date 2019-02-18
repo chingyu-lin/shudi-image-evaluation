@@ -25,31 +25,33 @@ ui <- fluidPage(
            actionButton(inputId = "Initialize", label= "初始化"),
              
              
-           tags$b("圖像中是否有人？" ),
-           tabBox( id = "People", selected = "-1", side = "left", width = 10,
-                   tabPanel(title = "是", value = '1'),
-                   tabPanel(title = "否", value = '0'),
-                   tabPanel(title = "無法判斷", value = '-1')
+           tags$b("这是一张什么类型的图片？ 请在以下选项中选择。" ),
+           tabBox( id = "Q1", side = "left", width = 10,
+                   tabPanel(title = "人像（包含一个或多个人物，或人物展示身份证件或诊断书等）", value = 'A'),
+                   tabPanel(title = "人体局部器官图", value = 'B'),
+                   tabPanel(title = "只有病情诊断书", value = 'C'),
+                   tabPanel(title = "只有身份证件", value = 'D'),
+                   tabPanel(title = "其它", value = 'E')
                    
-                  ), #End of tabBox
+                  ), #End of Q1
             
-           tags$b("圖像中是否在醫院？" ),
+           tags$b("Q2: 这是一张病人的治疗照还是生活照？
+" ),
            
-           tabBox( id = "Hospital", selected = "-1", side = "left", width = 10,
-                   tabPanel(title = "是", value = '1'),
-                   tabPanel(title = "否", value = '0'),
-                   tabPanel(title = "無法判斷", value = '-1')
-                   
-           ), #End of tabBox 
+           tabBox( id = "Q2", side = "left", width = 10,
+                   tabPanel(title = "治疗照", value = 'A'),
+                   tabPanel(title = "生活照", value = 'B')
+
+           ), #End of Q2
             
-           tags$b("圖像中是否有診斷證明書？" ),
+           tags$b("Q3: 您是否能够在图片中明确识别出谁是目标病人？？" ),
+           tabBox( id = "Q3", side = "left", width = 10,
+                   tabPanel(title = "能", value = '1'),
+                   tabPanel(title = "不能", value = '0')
+           ), #End of Q3
            
-           tabBox( id = "Diagnose", selected = "-1", side = "left", width = 10,
-                   tabPanel(title = "是", value = '1'),
-                   tabPanel(title = "否", value = '0'),
-                   tabPanel(title = "無法判斷", value = '-1')
-                   
-           ), #End of tabBox 
+           
+           
            actionButton(inputId = "Next", label= "下一張"),
            actionButton(inputId = "Finish", label= "存檔")
              
@@ -60,8 +62,8 @@ ui <- fluidPage(
             htmlOutput("currentpicID"),
             withSpinner(imageOutput("image", height = 300))
     )
-  ),#End of fluidRow
-  withSpinner(DTOutput(outputId ="surveyTable"))
+  )#,#End of fluidRow
+  #withSpinner(DTOutput(outputId ="surveyTable"))
   )
 )
 ######server########
@@ -75,12 +77,14 @@ server <- function(input, output, session) {
     picIDpadded = str_pad(0,4, side = c("left"), pad = "0"),
     survey = data.frame(
       "picID" = integer(),
-      "People" = integer(),
-      "Hospital" = integer(),
-      "Diagose" = integer()),
-    currentPeople = "-1",
-    currentHospital = "-1",
-    currentDiagnoise = "-1"
+      "Q1" = character(),
+      "Q2" = character(),
+      "Q3" = character(),
+      stringsAsFactors=FALSE),
+    
+    currentQ1 = "1",
+    currentQ2 = "1",
+    currentQ3 = "1"
   )
   
   #Initialize the survey
@@ -93,9 +97,10 @@ server <- function(input, output, session) {
       param$picIDpadded <- str_pad(input$picID,4, side = c("left"), pad = "0")
       param$survey <- data.frame(
         "picID" = integer(),
-        "People" = integer(),
-        "Hospital" = integer(),
-        "Diagose" = integer())
+        "Q1" = character(),
+        "Q2" = character(),
+        "Q3" = character(), 
+        stringsAsFactors=FALSE)
 
     })
   })
@@ -104,15 +109,15 @@ server <- function(input, output, session) {
     input$Next
     isolate({
       
-      param$currentPeople <- input$People
-      param$currentHospital <- input$Hospital
-      param$currentDiagonoise <- input$Diagnoise
+      param$currentQ1 <- input$Q1
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
 
 
       param$survey[nrow(param$survey)+1,1] <- param$picID
-      param$survey[nrow(param$survey),2] <- as.integer(param$currentPeople)
-      param$survey[nrow(param$survey),3] <- as.integer(param$currentHospital)
-      param$survey[nrow(param$survey),4] <- as.integer(param$currentDiagnoise)
+      param$survey[nrow(param$survey),2] <- (param$currentQ1)
+      param$survey[nrow(param$survey),3] <- (param$currentQ2)
+      param$survey[nrow(param$survey),4] <- (param$currentQ3)
       
       
       param$picID <- param$picID + 1
@@ -125,15 +130,15 @@ server <- function(input, output, session) {
     input$Finish
     isolate({
       
-      param$currentPeople <- input$People
-      param$currentHospital <- input$Hospital
-      param$currentDiagonoise <- input$Diagnoise
+      param$currentQ1 <- input$Q1
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
       
       
       param$survey[nrow(param$survey)+1,1] <- param$picID
-      param$survey[nrow(param$survey),2] <- as.integer(param$currentPeople)
-      param$survey[nrow(param$survey),3] <- as.integer(param$currentHospital)
-      param$survey[nrow(param$survey),4] <- as.integer(param$currentDiagnoise)
+      param$survey[nrow(param$survey),2] <- (param$currentQ1)
+      param$survey[nrow(param$survey),3] <- (param$currentQ2)
+      param$survey[nrow(param$survey),4] <- (param$currentQ3)
       
       write.csv(param$survey, file = glue("survey_{param$userID}_{param$startpicID}_{param$picID}.csv"))
       
@@ -165,9 +170,9 @@ server <- function(input, output, session) {
 
   
 
-  output$surveyTable <- renderDT({
-    param$survey
-  })
+  #output$surveyTable <- renderDT({
+  #  param$survey
+  #})
   
 }
   
