@@ -15,7 +15,8 @@ ui <- fluidPage(
   br(),
   br(),
   
-  navbarPage( "HEC Paris", 
+  navbarPage( "", 
+              
     tabPanel( "设定", 
     theme = shinytheme("readable"),
     
@@ -221,9 +222,9 @@ ui <- fluidPage(
                                       br(),
                                       actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
                                       span(style = 'margin-left:2em'),
-                                      actionButton(inputId = "Next", label= "下一张", width = '25%'),
-                                      span(style = 'margin-left:2em'),
-                                      actionButton(inputId = "Finish", label= "保存", width = '25%'))
+                                      actionButton(inputId = "Next", label= "下一张", width = '25%')
+                                      # span(style = 'margin-left:2em'),
+                                      # actionButton(inputId = "Finish", label= "保存", width = '25%'))
               )
               # ,
               # verticalLayout(
@@ -242,9 +243,24 @@ ui <- fluidPage(
               #   )#,#End of fluidRow
               #   #withSpinner(DTOutput(outputId ="surveyTable"))
               # )
-    )) #End of initialize-conditional panel)
+    ))),#End of second panel,
     
-    )
+    
+    tabPanel("保存上传",
+             sidebarLayout(
+               sidebarPanel(width = 5,
+                            p("恭喜您已经完成本次实验！"),
+                            p("请务必点击下面的按钮以保存并提交本次实验结果。"),
+                            actionButton(inputId = "Finish", label= "保存提交")
+               ),
+               mainPanel(width = 7,
+                         p(textOutput("thanks", container = span)),
+                         code(textOutput("range", container = span))
+               )
+             )
+    )#End of third panel)
+    
+    ) #End of navbarPage
   
   
   
@@ -496,6 +512,24 @@ server <- function(input, output, session) {
                })
   )
   
+  doneWork <- eventReactive(input$Finish, {
+    a <- str_pad(param$startpicID,4, side = c("left"), pad = "0")
+    b <- str_pad(nrow(param$survey) + param$startpicID - 1, 4, side = c("left"), pad = "0")
+    glue("{a}~{b}")
+  })
+  
+  
+  thankText <- eventReactive(input$Finish, {
+    "您已成功提交，再次感谢您的支持和参与！您本次完成的图片编码为："
+  })
+  
+  output$range <- renderText({
+    doneWork()
+  })
+  
+  output$thanks <- renderText({
+    thankText()
+  })
   
   #output$surveyTable <- renderDT({
   #  param$survey
