@@ -337,6 +337,7 @@ server <- function(input, output, session) {
     })
   })
   
+  
   observe({
     shinyjs::toggleState("Initialize", !is.null(input$userID) && input$userID != ""  )
   })
@@ -344,6 +345,36 @@ server <- function(input, output, session) {
   
   
   #Record the entry and show the next picture
+  
+  #Entry of question specific conditions
+  observe({
+    if( input$Q1 != 'A'){
+      param$currentQ2 <- NA
+      param$currentQ3 <- NA
+      param$currentQ4 <- NA
+      param$currentQ5 <- NA
+      param$currentQ6 <- NA
+      param$currentQ7 <- NA
+      param$currentQ8 <- NA
+      param$currentQ9 <- NA
+      param$currentQ10 <- NA
+      param$currentQ11 <- NA
+      
+    } else {
+      
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
+      param$currentQ4 <- input$Q4
+      param$currentQ5 <- input$Q5
+      param$currentQ6 <- input$Q6
+      param$currentQ7 <- input$Q7
+      param$currentQ8 <- input$Q8
+      param$currentQ9 <- input$Q9
+      param$currentQ10 <- input$Q10
+      param$currentQ11 <- input$Q11
+    }
+  })
+  
   
   observe({
     if( input$Q3 == '2'){
@@ -377,7 +408,7 @@ server <- function(input, output, session) {
       param$currentQ1 <- input$Q1
       param$currentQ2 <- input$Q2
       param$currentQ3 <- input$Q3
-      param$currentQ12 <- input$Q12     
+      param$currentQ12 <- input$Q12
       
       param$survey[nrow(param$survey)+1,1] <- param$picID
       param$survey[nrow(param$survey),2] <- param$currentQ1
