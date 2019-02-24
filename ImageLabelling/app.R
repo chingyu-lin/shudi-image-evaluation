@@ -16,36 +16,40 @@ ui <- fluidPage(
   br(),
   
   navbarPage( "HEC Paris", 
-    tabPanel( "Information", 
+    tabPanel( "设定", 
     theme = shinytheme("readable"),
-    #conditionalPanel( 'input.Initialize == 0 ',
+    
                                 
               
               
       verticalLayout(
       fluidRow(
-        column(5,
-               
+        column(12,
+                
+                 htmlOutput("welcomePage"),
                  #應改為當前測試組號較佳
+                 conditionalPanel( 'input.Initialize == 0 ',
                  #textInput("name", label = "姓名", ""), #尚未儲存此訊息
-            
+                 br(),
                  numericInput( "userID", label = "参与者编号",
                                value = NULL, min = 1, max = 99, step = 1 ),
                  numericInput( "picID", label = "起始照片编码",
                                value = NULL, min = 0, max = 4000, step = 1 ),
                  actionButton(inputId = "Initialize", label= "初始化")
-                 
+               
                  #passwordInput( "password", label = "請輸入密碼", value = "password" )
                  
-               ))#end of left column
+               )#End of conditionalPanel for initialize bottom
+               )#end of left column
       )#,#End of fluidRow
+ 
       #withSpinner(DTOutput(outputId ="surveyTable"))
-    #) #End of conditionalPanel
-    ) #End of tab 1
+    
+    )) #End of tab 1
     
     , 
     
-    tabPanel( "Experiment", 
+    tabPanel( "实验", 
     conditionalPanel( 'input.Initialize != 0 ',
     #conditionalPanel( 'input.password == "hecra"', #Set the passsword
                                         
@@ -67,6 +71,8 @@ ui <- fluidPage(
                                                      )
                                          ),
                                          #End of Q1
+                                         
+                                         conditionalPanel( 'input.Q1 == "A" ', 
                                          
                                          
                                          tags$b("Q2: 这是一张病人的治疗照还是生活照？"),
@@ -192,7 +198,7 @@ ui <- fluidPage(
                                                            )
                                                            
                                                            
-                                         ),#End of conditionalPanel
+                                         )),#End of conditionalPanel
                                          
                                          
                                          
@@ -469,6 +475,26 @@ server <- function(input, output, session) {
     
   })
   
+  
+  output$welcomePage <- renderText({
+    
+    "<TT><font size=3>亲爱的同学，您好！<br><br>在本工作中，我们需要您依次浏览若干张在医疗众筹案例中所呈现的图片，并对每张图片进行一些评估。<br><br>
+
+    注意：这些图片均来自于真实的医疗众筹案例，其中某些图片可能会让您感觉不适。一旦感觉不适，您可以随时暂停浏览，待休息调整好之后再继续浏览评估图片。您也可以随时选择停止浏览图片，停止该工作。
+    <br>
+    <br>
+    感谢您的支持和参与！
+    </TT>"
+  })
+  
+  observeEvent(input$Initialize, 
+               
+               output$welcomePage <- renderText({
+                 
+                 "<TT><font size=3>请点选实验开始。
+    </TT>"
+               })
+  )
   
   
   #output$surveyTable <- renderDT({
