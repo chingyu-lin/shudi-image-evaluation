@@ -35,7 +35,7 @@ ui <- fluidPage(
                  numericInput( "userID", label = "参与者编号",
                                value = NULL, min = 1, max = 99, step = 1 ),
                  numericInput( "picID", label = "起始照片编码",
-                               value = NULL, min = 0, max = 4000, step = 1 ),
+                               value = NULL, min = 0, max = 5000, step = 1 ),
                  actionButton(inputId = "Initialize", label= "初始化")
                
                  #passwordInput( "password", label = "請輸入密碼", value = "password" )
@@ -294,6 +294,7 @@ server <- function(input, output, session) {
       "Q10" = character(),
       "Q11" = character(),
       "Q12" = character(),
+      "size" = integer(),
       stringsAsFactors=FALSE),
     
     currentQ1 = NA,
@@ -332,6 +333,7 @@ server <- function(input, output, session) {
         "Q10" = character(),
         "Q11" = character(),
         "Q12" = character(),
+        "size" = integer(),
         stringsAsFactors=FALSE)
       
     })
@@ -410,6 +412,8 @@ server <- function(input, output, session) {
       param$currentQ3 <- input$Q3
       param$currentQ12 <- input$Q12
       
+      n <- param$picID - param$startpicID + 1
+      
       param$survey[nrow(param$survey)+1,1] <- param$picID
       param$survey[nrow(param$survey),2] <- param$currentQ1
       param$survey[nrow(param$survey),3] <- param$currentQ2
@@ -423,6 +427,7 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),11] <- param$currentQ10
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
+      param$survey[nrow(param$survey),14] <- round(file.size(glue("../Images/pic1_{param$picIDpadded}.jpeg")) / 1000000, digits = 3)
       
       param$picID <- param$picID + 1
       param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
@@ -498,6 +503,7 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),11] <- param$currentQ10
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
+      param$survey[nrow(param$survey),14] <- round(file.size(glue("../Images/pic1_{param$picIDpadded}.jpeg")) / 1000000, digits = 3)
       
       write.csv(param$survey, file = glue("survey_{param$userID}_{param$startpicID}_{param$picID}.csv"))
       
