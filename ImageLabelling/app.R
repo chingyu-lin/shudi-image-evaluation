@@ -220,8 +220,8 @@ ui <- fluidPage(
                                       br(),
                                       withSpinner(imageOutput("image", inline = TRUE)),
                                       br(),
-                                      actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
-                                      span(style = 'margin-left:2em'),
+                                      #actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
+                                      span(style = 'margin-left:15em'),
                                       actionButton(inputId = "Next", label= "下一张", width = '25%')
                                       # span(style = 'margin-left:2em'),
                                       # actionButton(inputId = "Finish", label= "保存", width = '25%'))
@@ -361,25 +361,10 @@ server <- function(input, output, session) {
       param$currentQ9 <- NA
       param$currentQ10 <- NA
       param$currentQ11 <- NA
-      
-    } else {
-      
+    } 
+    else if (input$Q3 == "2"){
       param$currentQ2 <- input$Q2
       param$currentQ3 <- input$Q3
-      param$currentQ4 <- input$Q4
-      param$currentQ5 <- input$Q5
-      param$currentQ6 <- input$Q6
-      param$currentQ7 <- input$Q7
-      param$currentQ8 <- input$Q8
-      param$currentQ9 <- input$Q9
-      param$currentQ10 <- input$Q10
-      param$currentQ11 <- input$Q11
-    }
-  })
-  
-  
-  observe({
-    if( input$Q3 == '2'){
       param$currentQ4 <- NA
       param$currentQ5 <- NA
       param$currentQ6 <- NA
@@ -388,9 +373,10 @@ server <- function(input, output, session) {
       param$currentQ9 <- NA
       param$currentQ10 <- NA
       param$currentQ11 <- NA
-      
-    } else {
-      
+    } 
+    else {
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
       param$currentQ4 <- input$Q4
       param$currentQ5 <- input$Q5
       param$currentQ6 <- input$Q6
@@ -401,15 +387,13 @@ server <- function(input, output, session) {
       param$currentQ11 <- input$Q11
     }
   })
-  
+
   
   observe({
     input$Next
     isolate({
       
       param$currentQ1 <- input$Q1
-      param$currentQ2 <- input$Q2
-      param$currentQ3 <- input$Q3
       param$currentQ12 <- input$Q12
       
       n <- param$picID - param$startpicID + 1
@@ -435,42 +419,42 @@ server <- function(input, output, session) {
     })
   })
   
-  observe({
-    input$Previous
-    isolate({
+  #observe({
+    #input$Previous
+    #isolate({
       
-      param$currentQ1 <- input$Q1
-      param$currentQ2 <- input$Q2
-      param$currentQ3 <- input$Q3
-      param$currentQ4 <- input$Q4
-      param$currentQ5 <- input$Q5
-      param$currentQ6 <- input$Q6
-      param$currentQ7 <- input$Q7
-      param$currentQ8 <- input$Q8
-      param$currentQ9 <- input$Q9
-      param$currentQ10 <- input$Q10
-      param$currentQ11 <- input$Q11
-      param$currentQ12 <- input$Q12     
+  #param$currentQ1 <- input$Q1
+  #param$currentQ2 <- input$Q2
+  #param$currentQ3 <- input$Q3
+  #param$currentQ4 <- input$Q4
+  #param$currentQ5 <- input$Q5
+  #param$currentQ6 <- input$Q6
+  #param$currentQ7 <- input$Q7
+  #param$currentQ8 <- input$Q8
+  #param$currentQ9 <- input$Q9
+  #param$currentQ10 <- input$Q10
+  #param$currentQ11 <- input$Q11
+  #param$currentQ12 <- input$Q12     
       
-      param$survey[nrow(param$survey)+1,1] <- param$picID
-      param$survey[nrow(param$survey),2] <- param$currentQ1
-      param$survey[nrow(param$survey),3] <- param$currentQ2
-      param$survey[nrow(param$survey),4] <- param$currentQ3
-      param$survey[nrow(param$survey),5] <- param$currentQ4
-      param$survey[nrow(param$survey),6] <- param$currentQ5
-      param$survey[nrow(param$survey),7] <- param$currentQ6
-      param$survey[nrow(param$survey),8] <- param$currentQ7
-      param$survey[nrow(param$survey),9] <- param$currentQ8
-      param$survey[nrow(param$survey),10] <- param$currentQ9
-      param$survey[nrow(param$survey),11] <- param$currentQ10
-      param$survey[nrow(param$survey),12] <- param$currentQ11
-      param$survey[nrow(param$survey),13] <- param$currentQ12
+  #param$survey[nrow(param$survey)+1,1] <- param$picID
+  #param$survey[nrow(param$survey),2] <- param$currentQ1
+  #param$survey[nrow(param$survey),3] <- param$currentQ2
+  #param$survey[nrow(param$survey),4] <- param$currentQ3
+  #param$survey[nrow(param$survey),5] <- param$currentQ4
+  #param$survey[nrow(param$survey),6] <- param$currentQ5
+  #param$survey[nrow(param$survey),7] <- param$currentQ6
+  #param$survey[nrow(param$survey),8] <- param$currentQ7
+  #param$survey[nrow(param$survey),9] <- param$currentQ8
+  #param$survey[nrow(param$survey),10] <- param$currentQ9
+  #param$survey[nrow(param$survey),11] <- param$currentQ10
+  #param$survey[nrow(param$survey),12] <- param$currentQ11
+  #param$survey[nrow(param$survey),13] <- param$currentQ12
       
-      param$picID <- param$picID - 1
-      param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
+  #param$picID <- param$picID - 1
+  #param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       
-    })
-  })
+  #})
+  #})
   
   #Save the dataframe
   observe({
