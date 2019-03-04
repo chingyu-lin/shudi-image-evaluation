@@ -328,7 +328,7 @@ server <- function(input, output, session) {
       param$groupID <- input$groupID
       param$index <- 1
       param$df_dict <- index_dict %>% filter(group == input$groupID) %>% filter(index == param$index)
-      param$picID <- param$df_dict[glue('rand{param$randID}')] %>% as.integer()
+      param$picID <- param$df_dict[param$randID + 2] %>% as.integer()
       #picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       
       
@@ -453,7 +453,7 @@ server <- function(input, output, session) {
       
       param$index <- param$index + 1
       param$df_dict <- index_dict %>% filter(group == input$groupID) %>% filter(index == param$index)
-      param$picID <- param$df_dict[glue('rand{input$randID}')]  %>% as.integer()
+      param$picID <- param$df_dict[input$randID + 2]  %>% as.integer()
       param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       
       
