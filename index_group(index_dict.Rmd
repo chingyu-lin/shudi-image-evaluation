@@ -1,0 +1,26 @@
+---
+title: "index_dict"
+author: "Ching-yu LIN"
+date: "3/4/2019"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(glue)
+index_dict <- read_csv("ImageLabelling/index_dict.csv")
+```
+
+```{r}
+index_dict
+```
+
+## Select group searched
+```{r}
+num <- index_dict %>% filter(group == 1, index == 1) 
+rand <- 1
+picID = num[glue('rand{rand}')] %>% as.integer()
+```
+
+
+

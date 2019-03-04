@@ -29,16 +29,16 @@ ui <- fluidPage(
                 
                  htmlOutput("welcomePage"),
                  #應改為當前測試組號較佳
-                 conditionalPanel( 'input.Initialize == 0 ',
+                 conditionalPanel( 'input.Initialize == input.Finish ',
                  #textInput("name", label = "姓名", ""), #尚未儲存此訊息
                  br(),
-                 numericInput( "userID", label = "参与者编号",
-                               value = NULL, min = 1, max = 99, step = 1 ),
-                 numericInput( "picID", label = "起始照片编码",
-                               value = NULL, min = 0, max = 4000, step = 1 ),
-                 actionButton(inputId = "Initialize", label= "初始化")
+                 numericInput( "randID", label = "随机编号: 1,2,3",
+                               value = 1, min = 1, max = 3, step = 1 ),
+                 numericInput( "groupID", label = "照片组号: 1~93",
+                               value = 1, min = 1, max = 93, step = 1 ),
+                 actionButton(inputId = "Initialize", label= "初始化")#,
                
-                 #passwordInput( "password", label = "請輸入密碼", value = "password" )
+                 #passwordInput( "password", label = "请输入密码", value = "password" )
                  
                )#End of conditionalPanel for initialize bottom
                )#end of left column
@@ -51,7 +51,11 @@ ui <- fluidPage(
     , 
     
     tabPanel( "实验", 
-    conditionalPanel( 'input.Initialize != 0 ',
+    conditionalPanel( 'input.Initialize == input.Finish + 1',
+                      
+    #Find better way to code this condition 
+    conditionalPanel( '(input.Next < 50*input.Initialize && input.groupID != 93) || (input.groupID == 93 && input.Next< 26)',
+    
     #conditionalPanel( 'input.password == "hecra"', #Set the passsword
                                         
     
@@ -220,8 +224,8 @@ ui <- fluidPage(
                                       br(),
                                       withSpinner(imageOutput("image", inline = TRUE)),
                                       br(),
-                                      actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
-                                      span(style = 'margin-left:2em'),
+                                      #actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
+                                      span(style = 'margin-left:15em'),
                                       actionButton(inputId = "Next", label= "下一张", width = '25%')
                                       # span(style = 'margin-left:2em'),
                                       # actionButton(inputId = "Finish", label= "保存", width = '25%'))
@@ -243,7 +247,7 @@ ui <- fluidPage(
               #   )#,#End of fluidRow
               #   #withSpinner(DTOutput(outputId ="surveyTable"))
               # )
-    ))),#End of second panel,
+    )))),#End of second panel,
     
     
     tabPanel("保存上传",
@@ -274,12 +278,17 @@ ui <- fluidPage(
 #--------------------------------------------------------server--------------------------------------------------------
 
 server <- function(input, output, session) {
+  index_dict <- read_csv("index_dict.csv")
   
   param <- reactiveValues(
-    userID = 1,
+    randID = 1, #1~3
+    groupID = 1, #1~93
+    index = 1, #1~50
+
+    df_dict = index_dict %>% filter(group == 1) ,
     picID = 0,
-    startpicID = 0,
-    picIDpadded = str_pad(0,4, side = c("left"), pad = "0"),
+    picID = index_dict %>% filter(group == 1) %>% filter(index == 1) %>% select(rand1) %>% as.integer(),
+    picIDpadded = str_pad(1,4, side = c("left"), pad = "0"),
     survey = data.frame(
       "picID" = integer(),
       "Q1" = character(),
@@ -314,10 +323,16 @@ server <- function(input, output, session) {
   observe({
     input$Initialize
     isolate({
-      param$userID <- str_pad(input$userID,3,side = c("left"),pad = "0")
-      param$picID <- input$picID
-      param$startpicID <- input$picID
-      param$picIDpadded <- str_pad(input$picID,4, side = c("left"), pad = "0")
+      #param$userID <- str_pad(input$userID,3,side = c("left"),pad = "0")
+      param$randID <- input$randID
+      param$groupID <- input$groupID
+      param$index <- 1
+      param$df_dict <- index_dict %>% filter(group == input$groupID) %>% filter(index == param$index)
+      param$picID <- param$df_dict[glue('rand{param$randID}')] %>% as.integer()
+      #picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
+      
+      
+      param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       param$survey <- data.frame(
         "picID" = integer(),
         "Q1" = character(),
@@ -339,7 +354,7 @@ server <- function(input, output, session) {
   
   
   observe({
-    shinyjs::toggleState("Initialize", !is.null(input$userID) && input$userID != ""  )
+    shinyjs::toggleState("Initialize", !is.null(input$groupID) && input$groupID != ""  )
   })
   
   
@@ -360,8 +375,19 @@ server <- function(input, output, session) {
       param$currentQ10 <- NA
       param$currentQ11 <- NA
       
-    } else {
-      
+    }else if (input$Q3 == "2"){
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
+      param$currentQ4 <- NA
+      param$currentQ5 <- NA
+      param$currentQ6 <- NA
+      param$currentQ7 <- NA
+      param$currentQ8 <- NA
+      param$currentQ9 <- NA
+      param$currentQ10 <- NA
+      param$currentQ11 <- NA
+    } 
+    else {
       param$currentQ2 <- input$Q2
       param$currentQ3 <- input$Q3
       param$currentQ4 <- input$Q4
@@ -374,6 +400,7 @@ server <- function(input, output, session) {
       param$currentQ11 <- input$Q11
     }
   })
+  
   
   
   observe({
@@ -424,48 +451,165 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
       
-      param$picID <- param$picID + 1
+      param$index <- param$index + 1
+      param$df_dict <- index_dict %>% filter(group == input$groupID) %>% filter(index == param$index)
+      param$picID <- param$df_dict[glue('rand{input$randID}')]  %>% as.integer()
       param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       
+      
+      updateSelectInput(session, "Q1",
+                        label = "请在以下选项中选择:",
+                        selected = NULL, choices = c("人像（包含一个或多个人物，或人物展示身份证件或诊断书等）" = 'A', 
+                                                     "人体局部器官图" = 'B', 
+                                                     "只有病情诊断书" = 'C',
+                                                     "只有身份证件" = 'D',
+                                                     "其它" = 'E')
+      )
+      
+      updateSelectInput(session, "Q2",
+                        label = "请在以下选项中选择:",
+                        selected = NULL, choices = c("治疗照" = 'A', 
+                                                     "生活照" = 'B')
+      )
+      
+      updateSelectInput(session, "Q3",
+                        label = "Q3: 您能否判断这张图片中谁是病人？",
+                        selected = NULL, choices = c("能" = '1', 
+                                                     "不能" = '2')
+      )
+      
+      updateRadioButtons(session, "Q4",
+                         label = "1-非常清晰  5-非常不清晰:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q5",
+                         label = "1-非常消极  5-非常积极:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q6",
+                         label = "1-非常弱  5-非常强:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q7",
+                         label = "1-非常悲观  5-非常乐观:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q8",
+                         label = "1-非常不好看  5-非常好看:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q9",
+                         label = "1-一点都不悲惨  5-非常悲惨:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q10",
+                         label = "1-一点都不需要  5-非常需要:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q11",
+                         label = "1-完全没有  5-非常不适:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateTextAreaInput(session, "Q12",
+                          label = "如果您有任何反馈请填入下方；如没有，可直接跳过该题。",
+                          value = "",
+                          placeholder = "请输入"
+      )
     })
   })
   
-  observe({
-    input$Previous
-    isolate({
-      
-      param$currentQ1 <- input$Q1
-      param$currentQ2 <- input$Q2
-      param$currentQ3 <- input$Q3
-      param$currentQ4 <- input$Q4
-      param$currentQ5 <- input$Q5
-      param$currentQ6 <- input$Q6
-      param$currentQ7 <- input$Q7
-      param$currentQ8 <- input$Q8
-      param$currentQ9 <- input$Q9
-      param$currentQ10 <- input$Q10
-      param$currentQ11 <- input$Q11
-      param$currentQ12 <- input$Q12     
-      
-      param$survey[nrow(param$survey)+1,1] <- param$picID
-      param$survey[nrow(param$survey),2] <- param$currentQ1
-      param$survey[nrow(param$survey),3] <- param$currentQ2
-      param$survey[nrow(param$survey),4] <- param$currentQ3
-      param$survey[nrow(param$survey),5] <- param$currentQ4
-      param$survey[nrow(param$survey),6] <- param$currentQ5
-      param$survey[nrow(param$survey),7] <- param$currentQ6
-      param$survey[nrow(param$survey),8] <- param$currentQ7
-      param$survey[nrow(param$survey),9] <- param$currentQ8
-      param$survey[nrow(param$survey),10] <- param$currentQ9
-      param$survey[nrow(param$survey),11] <- param$currentQ10
-      param$survey[nrow(param$survey),12] <- param$currentQ11
-      param$survey[nrow(param$survey),13] <- param$currentQ12
-      
-      param$picID <- param$picID - 1
-      param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
-      
-    })
-  })
+  # observe({
+  #   input$Previous
+  #   isolate({
+  #     
+  #     param$currentQ1 <- input$Q1
+  #     param$currentQ2 <- input$Q2
+  #     param$currentQ3 <- input$Q3
+  #     param$currentQ4 <- input$Q4
+  #     param$currentQ5 <- input$Q5
+  #     param$currentQ6 <- input$Q6
+  #     param$currentQ7 <- input$Q7
+  #     param$currentQ8 <- input$Q8
+  #     param$currentQ9 <- input$Q9
+  #     param$currentQ10 <- input$Q10
+  #     param$currentQ11 <- input$Q11
+  #     param$currentQ12 <- input$Q12     
+  #     
+  #     param$survey[nrow(param$survey)+1,1] <- param$picID
+  #     param$survey[nrow(param$survey),2] <- param$currentQ1
+  #     param$survey[nrow(param$survey),3] <- param$currentQ2
+  #     param$survey[nrow(param$survey),4] <- param$currentQ3
+  #     param$survey[nrow(param$survey),5] <- param$currentQ4
+  #     param$survey[nrow(param$survey),6] <- param$currentQ5
+  #     param$survey[nrow(param$survey),7] <- param$currentQ6
+  #     param$survey[nrow(param$survey),8] <- param$currentQ7
+  #     param$survey[nrow(param$survey),9] <- param$currentQ8
+  #     param$survey[nrow(param$survey),10] <- param$currentQ9
+  #     param$survey[nrow(param$survey),11] <- param$currentQ10
+  #     param$survey[nrow(param$survey),12] <- param$currentQ11
+  #     param$survey[nrow(param$survey),13] <- param$currentQ12
+  #     
+  #     param$picID <- param$picID - 1
+  #     param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
+  #     
+  #   })
+  # })
   
   #Save the dataframe
   observe({
@@ -499,7 +643,7 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
       
-      write.csv(param$survey, file = glue("survey_{param$userID}_{param$startpicID}_{param$picID}.csv"))
+      write.csv(param$survey, file = glue("survey_{param$randID}_{param$groupID}.csv"))
       
     })
   })
@@ -507,6 +651,9 @@ server <- function(input, output, session) {
   
   # image sends pre-rendered images
   output$image <- renderImage({
+    
+    
+    
     return(list(
       src = glue("../Images/pic1_{param$picIDpadded}.jpeg"),
       width = 400,
@@ -517,8 +664,11 @@ server <- function(input, output, session) {
     
   }, deleteFile = FALSE)
   
+  
+
+  
   output$currentpicID <- renderText({
-    glue("当前照片编号{param$picIDpadded}")
+    glue("当前照片编号{param$picIDpadded},  第{param$index}张")
     
   })
   
@@ -544,14 +694,14 @@ server <- function(input, output, session) {
   )
   
   doneWork <- eventReactive(input$Finish, {
-    a <- str_pad(param$startpicID,4, side = c("left"), pad = "0")
-    b <- str_pad(nrow(param$survey) + param$startpicID - 1, 4, side = c("left"), pad = "0")
-    glue("{a}~{b}")
+    #a <- str_pad(param$startpicID,4, side = c("left"), pad = "0")
+    #b <- str_pad(nrow(param$survey) + param$startpicID - 1, 4, side = c("left"), pad = "0")
+    glue("rand:{input$randID}, group:{input$groupID}")
   })
   
   
   thankText <- eventReactive(input$Finish, {
-    "您已成功提交，再次感谢您的支持和参与！您本次完成的图片编码为："
+    "您已成功提交，再次感谢您的支持和参与！您本次完成的组号为："
   })
   
   output$range <- renderText({
