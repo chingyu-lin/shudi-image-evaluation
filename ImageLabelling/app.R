@@ -35,7 +35,7 @@ ui <- fluidPage(
                  numericInput( "userID", label = "参与者编号",
                                value = NULL, min = 1, max = 99, step = 1 ),
                  numericInput( "picID", label = "起始照片编码",
-                               value = NULL, min = 0, max = 5000, step = 1 ),
+                               value = NULL, min = 0, max = 4000, step = 1 ),
                  actionButton(inputId = "Initialize", label= "初始化")
                
                  #passwordInput( "password", label = "請輸入密碼", value = "password" )
@@ -201,6 +201,12 @@ ui <- fluidPage(
                                                            
                                          )),#End of conditionalPanel
                                          
+                                         
+                                         
+                                         
+                                         
+                                         
+                                         
                                          tags$b("Q12: 您对所评估的图片是否有发现任何异常需要报告？例如，图中有多个人无法区分目标病人，图中没有人脸无法识别面部表情，或人脸非常模糊等。"),
                                          textAreaInput("Q12",
                                                        label = "如果您有任何反馈请填入下方；如没有，可直接跳过该题。",
@@ -214,8 +220,8 @@ ui <- fluidPage(
                                       br(),
                                       withSpinner(imageOutput("image", inline = TRUE)),
                                       br(),
-                                      #actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
-                                      span(style = 'margin-left:15em'),
+                                      actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
+                                      span(style = 'margin-left:2em'),
                                       actionButton(inputId = "Next", label= "下一张", width = '25%')
                                       # span(style = 'margin-left:2em'),
                                       # actionButton(inputId = "Finish", label= "保存", width = '25%'))
@@ -288,7 +294,6 @@ server <- function(input, output, session) {
       "Q10" = character(),
       "Q11" = character(),
       "Q12" = character(),
-      "size" = integer(),
       stringsAsFactors=FALSE),
     
     currentQ1 = NA,
@@ -327,7 +332,6 @@ server <- function(input, output, session) {
         "Q10" = character(),
         "Q11" = character(),
         "Q12" = character(),
-        "size" = integer(),
         stringsAsFactors=FALSE)
       
     })
@@ -355,20 +359,9 @@ server <- function(input, output, session) {
       param$currentQ9 <- NA
       param$currentQ10 <- NA
       param$currentQ11 <- NA
-    } 
-    else if (input$Q3 == "2"){
-      param$currentQ2 <- input$Q2
-      param$currentQ3 <- input$Q3
-      param$currentQ4 <- NA
-      param$currentQ5 <- NA
-      param$currentQ6 <- NA
-      param$currentQ7 <- NA
-      param$currentQ8 <- NA
-      param$currentQ9 <- NA
-      param$currentQ10 <- NA
-      param$currentQ11 <- NA
-    } 
-    else {
+      
+    } else {
+      
       param$currentQ2 <- input$Q2
       param$currentQ3 <- input$Q3
       param$currentQ4 <- input$Q4
@@ -381,16 +374,41 @@ server <- function(input, output, session) {
       param$currentQ11 <- input$Q11
     }
   })
-
+  
+  
+  observe({
+    if( input$Q3 == '2'){
+      param$currentQ4 <- NA
+      param$currentQ5 <- NA
+      param$currentQ6 <- NA
+      param$currentQ7 <- NA
+      param$currentQ8 <- NA
+      param$currentQ9 <- NA
+      param$currentQ10 <- NA
+      param$currentQ11 <- NA
+      
+    } else {
+      
+      param$currentQ4 <- input$Q4
+      param$currentQ5 <- input$Q5
+      param$currentQ6 <- input$Q6
+      param$currentQ7 <- input$Q7
+      param$currentQ8 <- input$Q8
+      param$currentQ9 <- input$Q9
+      param$currentQ10 <- input$Q10
+      param$currentQ11 <- input$Q11
+    }
+  })
+  
   
   observe({
     input$Next
     isolate({
       
       param$currentQ1 <- input$Q1
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
       param$currentQ12 <- input$Q12
-      
-      n <- param$picID - param$startpicID + 1
       
       param$survey[nrow(param$survey)+1,1] <- param$picID
       param$survey[nrow(param$survey),2] <- param$currentQ1
@@ -405,164 +423,49 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),11] <- param$currentQ10
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
-      param$survey[nrow(param$survey),14] <- round(file.size(glue("../Images/pic1_{param$picIDpadded}.jpeg")) / 1000000, digits = 3)
       
       param$picID <- param$picID + 1
       param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       
-      updateSelectInput(session, "Q1",
-                  label = "请在以下选项中选择:",
-                  selected = NULL, choices = c("人像（包含一个或多个人物，或人物展示身份证件或诊断书等）" = 'A', 
-                                               "人体局部器官图" = 'B', 
-                                               "只有病情诊断书" = 'C',
-                                               "只有身份证件" = 'D',
-                                               "其它" = 'E')
-      )
-      
-      updateSelectInput(session, "Q2",
-                        label = "请在以下选项中选择:",
-                        selected = NULL, choices = c("治疗照" = 'A', 
-                                                     "生活照" = 'B')
-      )
-      
-      updateSelectInput(session, "Q3",
-                        label = "Q3: 您能否判断这张图片中谁是病人？",
-                        selected = NULL, choices = c("能" = '1', 
-                                                     "不能" = '2')
-      )
-      
-      updateRadioButtons(session, "Q4",
-                         label = "1-非常清晰  5-非常不清晰:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q5",
-                         label = "1-非常消极  5-非常积极:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q6",
-                         label = "1-非常弱  5-非常强:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q7",
-                         label = "1-非常悲观  5-非常乐观:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q8",
-                         label = "1-非常不好看  5-非常好看:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q9",
-                         label = "1-一点都不悲惨  5-非常悲惨:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q10",
-                         label = "1-一点都不需要  5-非常需要:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateRadioButtons(session, "Q11",
-                         label = "1-完全没有  5-非常不适:",
-                         inline = TRUE,
-                         choices= c(
-                           "1" = "1",
-                           "2" = "2",
-                           "3" = "3",
-                           "4" = "4",
-                           "5" = "5")
-      )
-      
-      updateTextAreaInput(session, "Q12",
-                          label = "如果您有任何反馈请填入下方；如没有，可直接跳过该题。",
-                          value = "",
-                          placeholder = "请输入"
-      )
     })
   })
   
-  #observe({
-    #input$Previous
-    #isolate({
+  observe({
+    input$Previous
+    isolate({
       
-  #param$currentQ1 <- input$Q1
-  #param$currentQ2 <- input$Q2
-  #param$currentQ3 <- input$Q3
-  #param$currentQ4 <- input$Q4
-  #param$currentQ5 <- input$Q5
-  #param$currentQ6 <- input$Q6
-  #param$currentQ7 <- input$Q7
-  #param$currentQ8 <- input$Q8
-  #param$currentQ9 <- input$Q9
-  #param$currentQ10 <- input$Q10
-  #param$currentQ11 <- input$Q11
-  #param$currentQ12 <- input$Q12     
+      param$currentQ1 <- input$Q1
+      param$currentQ2 <- input$Q2
+      param$currentQ3 <- input$Q3
+      param$currentQ4 <- input$Q4
+      param$currentQ5 <- input$Q5
+      param$currentQ6 <- input$Q6
+      param$currentQ7 <- input$Q7
+      param$currentQ8 <- input$Q8
+      param$currentQ9 <- input$Q9
+      param$currentQ10 <- input$Q10
+      param$currentQ11 <- input$Q11
+      param$currentQ12 <- input$Q12     
       
-  #param$survey[nrow(param$survey)+1,1] <- param$picID
-  #param$survey[nrow(param$survey),2] <- param$currentQ1
-  #param$survey[nrow(param$survey),3] <- param$currentQ2
-  #param$survey[nrow(param$survey),4] <- param$currentQ3
-  #param$survey[nrow(param$survey),5] <- param$currentQ4
-  #param$survey[nrow(param$survey),6] <- param$currentQ5
-  #param$survey[nrow(param$survey),7] <- param$currentQ6
-  #param$survey[nrow(param$survey),8] <- param$currentQ7
-  #param$survey[nrow(param$survey),9] <- param$currentQ8
-  #param$survey[nrow(param$survey),10] <- param$currentQ9
-  #param$survey[nrow(param$survey),11] <- param$currentQ10
-  #param$survey[nrow(param$survey),12] <- param$currentQ11
-  #param$survey[nrow(param$survey),13] <- param$currentQ12
+      param$survey[nrow(param$survey)+1,1] <- param$picID
+      param$survey[nrow(param$survey),2] <- param$currentQ1
+      param$survey[nrow(param$survey),3] <- param$currentQ2
+      param$survey[nrow(param$survey),4] <- param$currentQ3
+      param$survey[nrow(param$survey),5] <- param$currentQ4
+      param$survey[nrow(param$survey),6] <- param$currentQ5
+      param$survey[nrow(param$survey),7] <- param$currentQ6
+      param$survey[nrow(param$survey),8] <- param$currentQ7
+      param$survey[nrow(param$survey),9] <- param$currentQ8
+      param$survey[nrow(param$survey),10] <- param$currentQ9
+      param$survey[nrow(param$survey),11] <- param$currentQ10
+      param$survey[nrow(param$survey),12] <- param$currentQ11
+      param$survey[nrow(param$survey),13] <- param$currentQ12
       
-  #param$picID <- param$picID - 1
-  #param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
+      param$picID <- param$picID - 1
+      param$picIDpadded <- str_pad(param$picID,4, side = c("left"), pad = "0")
       
-  #})
-  #})
+    })
+  })
   
   #Save the dataframe
   observe({
@@ -595,7 +498,6 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),11] <- param$currentQ10
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
-      param$survey[nrow(param$survey),14] <- round(file.size(glue("../Images/pic1_{param$picIDpadded}.jpeg")) / 1000000, digits = 3)
       
       write.csv(param$survey, file = glue("survey_{param$userID}_{param$startpicID}_{param$picID}.csv"))
       
