@@ -26,11 +26,16 @@ ui <- fluidPage(
       verticalLayout(
       fluidRow(
         column(12,
-                
-                 htmlOutput("welcomePage"),
-                 #應改為當前測試組號較佳
+                 conditionalPanel('input.Initialize != input.Finish',
+                                  p("请点选实验开始。")
+                                  ),
+               
                  conditionalPanel( 'input.Initialize == input.Finish ',
                  #textInput("name", label = "姓名", ""), #尚未儲存此訊息
+                 p("亲爱的同学，您好!"),
+                 p("在本工作中，我们需要您依次浏览若干张在医疗众筹案例中所呈现的图片，并对每张图片进行一些评估。"),
+                 p("注意：这些图片均来自于真实的医疗众筹案例，其中某些图片可能会让您感觉不适。一旦感觉不适，您可以随时暂停浏览，待休息调整好之后再继续浏览评估图片。您也可以随时选择停止浏览图片，停止该工作。"),
+                 p("感谢您的支持和参与!"),
                  br(),
                  numericInput( "userID", label = "试验者编号:",
                                value = 1, min = 1, max = 50, step = 1 ),
@@ -53,7 +58,7 @@ ui <- fluidPage(
     , 
     
     tabPanel( "实验", 
-    conditionalPanel( 'input.Initialize == input.Finish + 1',
+    conditionalPanel( 'input.Initialize != input.Finish',
                       
     #conditionalPanel( 'input.password == "hecra"', #Set the passsword
                                         
@@ -215,10 +220,12 @@ ui <- fluidPage(
                                       br(),
                                       #actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
                                       conditionalPanel(
-                                        'input.Next < 49*input.Initialize',
+                                        'output.clicks != "50"',
                                         span(style = 'margin-left:15em'),
                                         actionButton(inputId = "Next", label= "下一张", width = '25%')
-                                      )
+                                      ),
+                                      br(),
+                                      textOutput("clicks")
                                       # span(style = 'margin-left:2em'),
                                       # actionButton(inputId = "Finish", label= "保存", width = '25%'))
               )
@@ -251,20 +258,21 @@ ui <- fluidPage(
                mainPanel(width = 7,
                          conditionalPanel("input.Initialize == input.Finish",
                            p(textOutput("thanks", container = span)),
-                           code(textOutput("range", container = span))
+                           code(textOutput("range", container = span)),
+                           br(),
+                           br(),
+                           p("请联系实验员，重新设定并初始化以继续作答。")
                          )
                )
              )
     )#End of third panel)
     
-    ) #End of navbarPage
-  
-  
-  
+    ), #End of navbarPage
   
   #)
-
-
+  
+  tags$style("#clicks {visibility: hidden;}")
+  
 )
 
 
@@ -277,7 +285,7 @@ server <- function(input, output, session) {
     randID = 1, #1~3
     groupID = 1, #1~93
     index = 1, #1~50
-
+    
     userID = 1,
     df_dict = index_dict %>% filter(group == 1),
     picID = index_dict %>% filter(group == 1) %>% filter(index == 1) %>% select(rand1) %>% as.integer(),
@@ -612,15 +620,19 @@ server <- function(input, output, session) {
       
       write.csv(param$survey, file = glue("survey_{param$userID}_{param$randID}_{param$groupID}.csv"))
       
+      updateNumericInput(session, "userID", label = "试验者编号:",
+                         value = 1, min = 1, max = 50, step = 1)
+      updateNumericInput(session, "randID", label = "实验序号: 1,2,3",
+                         value = 1, min = 1, max = 3, step = 1)
+      updateNumericInput(session, "groupID", label = "照片组号: 1~92",
+                         value = 1, min = 1, max = 92, step = 1)
     })
   })
   
   
   # image sends pre-rendered images
   output$image <- renderImage({
-    
-    
-    
+
     return(list(
       src = glue("../Images/pic1_{param$picIDpadded}.jpeg"),
       width = 400,
@@ -631,34 +643,35 @@ server <- function(input, output, session) {
     
   }, deleteFile = FALSE)
   
-  
+  output$clicks <- renderText({
+    glue("{param$index}")
+  })
 
   
   output$currentpicID <- renderText({
     glue("当前照片编号{param$picIDpadded}, 随机序号{param$randID}, 第{param$groupID}组第{param$index}张")
-    
   })
   
   
-  output$welcomePage <- renderText({
+ # output$welcomePage <- renderText({
     
-    "<TT><font size=3>亲爱的同学，您好！<br><br>在本工作中，我们需要您依次浏览若干张在医疗众筹案例中所呈现的图片，并对每张图片进行一些评估。<br><br>
+ #   "<TT><font size=3>亲爱的同学，您好！<br><br>在本工作中，我们需要您依次浏览若干张在医疗众筹案例中所呈现的图片，并对每张图片进行一些评估。<br><br>
 
-    注意：这些图片均来自于真实的医疗众筹案例，其中某些图片可能会让您感觉不适。一旦感觉不适，您可以随时暂停浏览，待休息调整好之后再继续浏览评估图片。您也可以随时选择停止浏览图片，停止该工作。
-    <br>
-    <br>
-    感谢您的支持和参与！
-    </TT>"
-  })
+ #   注意：这些图片均来自于真实的医疗众筹案例，其中某些图片可能会让您感觉不适。一旦感觉不适，您可以随时暂停浏览，待休息调整好之后再继续浏览评估图片。您也可以随时选择停止浏览图片，停止该工作。
+ #  <br>
+ #   <br>
+ #   感谢您的支持和参与！
+ #   </TT>"
+ # })
   
-  observeEvent(input$Initialize, 
+ # observeEvent(input$Initialize, 
                
-               output$welcomePage <- renderText({
+ #              output$welcomePage <- renderText({
                  
-                 "<TT><font size=3>请点选实验开始。
-    </TT>"
-               })
-  )
+ #                "<TT><font size=3>请点选实验开始。
+ #   </TT>"
+ #              })
+ # )
   
   doneWork <- eventReactive(input$Finish, {
     #a <- str_pad(param$startpicID,4, side = c("left"), pad = "0")
