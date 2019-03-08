@@ -304,6 +304,7 @@ server <- function(input, output, session) {
       "Q10" = character(),
       "Q11" = character(),
       "Q12" = character(),
+      "size" = integer(),
       stringsAsFactors=FALSE),
     
     currentQ1 = NA,
@@ -348,6 +349,7 @@ server <- function(input, output, session) {
         "Q10" = character(),
         "Q11" = character(),
         "Q12" = character(),
+        "size" = integer(),
         stringsAsFactors=FALSE)
       
     })
@@ -425,6 +427,7 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),11] <- param$currentQ10
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
+      param$survey[nrow(param$survey),14] <- round(file.size(glue("../Images/pic1_{param$picIDpadded}.jpeg")) / 1000000, digits = 3)
       
       param$index <- param$index + 1
       param$df_dict <- index_dict %>% filter(group == input$groupID) %>% filter(index == param$index)
@@ -617,6 +620,7 @@ server <- function(input, output, session) {
       param$survey[nrow(param$survey),11] <- param$currentQ10
       param$survey[nrow(param$survey),12] <- param$currentQ11
       param$survey[nrow(param$survey),13] <- param$currentQ12
+      param$survey[nrow(param$survey),14] <- round(file.size(glue("../Images/pic1_{param$picIDpadded}.jpeg")) / 1000000, digits = 3)
       
       write.csv(param$survey, file = glue("survey_{param$userID}_{param$randID}_{param$groupID}.csv"))
       
