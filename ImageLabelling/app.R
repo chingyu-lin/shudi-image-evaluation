@@ -41,8 +41,8 @@ ui <- fluidPage(
                                value = 1, min = 1, max = 50, step = 1 ),
                  numericInput( "randID", label = "实验序号: 1,2,3",
                                value = 1, min = 1, max = 3, step = 1 ),
-                 numericInput( "groupID", label = "照片组号: 1~92",
-                               value = 1, min = 1, max = 92, step = 1 ),
+                 numericInput( "groupID", label = "照片组号: 1~93",
+                               value = 1, min = 1, max = 93, step = 1 ),
                  actionButton(inputId = "Initialize", label= "初始化")#,
                
                  #passwordInput( "password", label = "请输入密码", value = "password" )
@@ -220,7 +220,7 @@ ui <- fluidPage(
                                       br(),
                                       #actionButton(inputId = "Previous", label= "上一张", width = '25%', style = 'margin-left:2em'),
                                       conditionalPanel(
-                                        'output.clicks != "50"',
+                                        '(input.groupID != "93" & output.clicks != "50")|(input.groupID == "93" & output.clicks != "27")',
                                         span(style = 'margin-left:15em'),
                                         actionButton(inputId = "Next", label= "下一张", width = '25%')
                                       ),
@@ -628,8 +628,8 @@ server <- function(input, output, session) {
                          value = 1, min = 1, max = 50, step = 1)
       updateNumericInput(session, "randID", label = "实验序号: 1,2,3",
                          value = 1, min = 1, max = 3, step = 1)
-      updateNumericInput(session, "groupID", label = "照片组号: 1~92",
-                         value = 1, min = 1, max = 92, step = 1)
+      updateNumericInput(session, "groupID", label = "照片组号: 1~93",
+                         value = 1, min = 1, max = 93, step = 1)
     })
   })
   
