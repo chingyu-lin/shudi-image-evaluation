@@ -624,12 +624,12 @@ server <- function(input, output, session) {
       
       write.csv(param$survey, file = glue("survey_{param$userID}_{param$randID}_{param$groupID}.csv"))
       
-      updateNumericInput(session, "userID", label = "试验者编号:",
-                         value = 1, min = 1, max = 50, step = 1)
-      updateNumericInput(session, "randID", label = "实验序号: 1,2,3",
-                         value = 1, min = 1, max = 3, step = 1)
-      updateNumericInput(session, "groupID", label = "照片组号: 1~93",
-                         value = 1, min = 1, max = 93, step = 1)
+      #updateNumericInput(session, "userID", label = "试验者编号:",
+                         #value = 1, min = 1, max = 50, step = 1)
+      #updateNumericInput(session, "randID", label = "实验序号: 1,2,3",
+                         #value = 1, min = 1, max = 3, step = 1)
+      #updateNumericInput(session, "groupID", label = "照片组号: 1~93",
+                         #value = 1, min = 1, max = 93, step = 1)
     })
   })
   
