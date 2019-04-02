@@ -92,7 +92,7 @@ ui <- fluidPage(
                                          
                                          
                                          selectInput("Q3",
-                                                     label = "Q3: 您能否判断这张图片中谁是病人？",
+                                                     label = "Q3: 您能否判断这张图片中谁是病人？（如果照片只包含一个人物，则默认为病人。）",
                                                      selected = NULL, choices = c("能" = '1', 
                                                                                   "不能" = '2'))
                                          ,
@@ -123,7 +123,7 @@ ui <- fluidPage(
                                                                         )
                                                            ),
                                                            
-                                                           tags$b("Q6: 您觉得图片中病人的面部表情所传达的唤醒度有多强？"),
+                                                           tags$b("Q6: 无论是积极情绪还是消极情绪，他们的唤醒程度或能量传递的强度都可能有所不同。例如，大大的笑容和恐惧的面部表情传达较强的唤醒度，而浅浅的微笑和镇静的面部表情则传达较弱的唤醒度。您觉得图片整体所传达的唤醒度有多强？"),
                                                            radioButtons("Q6",
                                                                         label = "1-非常弱  5-非常强:",
                                                                         inline = TRUE,
@@ -451,7 +451,7 @@ server <- function(input, output, session) {
       )
       
       updateSelectInput(session, "Q3",
-                        label = "Q3: 您能否判断这张图片中谁是病人？",
+                        label = "Q3: 您能否判断这张图片中谁是病人？（如果照片只包含一个人物，则默认为病人。）",
                         selected = NULL, choices = c("能" = '1', 
                                                      "不能" = '2')
       )
@@ -630,6 +630,121 @@ server <- function(input, output, session) {
                          #value = 1, min = 1, max = 3, step = 1)
       #updateNumericInput(session, "groupID", label = "照片组号: 1~93",
                          #value = 1, min = 1, max = 93, step = 1)
+      updateSelectInput(session, "Q1",
+                        label = "请在以下选项中选择:",
+                        selected = NULL, choices = c("人像（包含一个或多个人物，或人物展示身份证件或诊断书等）" = 'A', 
+                                                     "人体局部器官图" = 'B', 
+                                                     "只有病情诊断书" = 'C',
+                                                     "只有身份证件" = 'D',
+                                                     "其它" = 'E')
+      )
+      
+      updateSelectInput(session, "Q2",
+                        label = "请在以下选项中选择:",
+                        selected = NULL, choices = c("治疗照" = 'A', 
+                                                     "生活照" = 'B')
+      )
+      
+      updateSelectInput(session, "Q3",
+                        label = "Q3: 您能否判断这张图片中谁是病人？（如果照片只包含一个人物，则默认为病人。）",
+                        selected = NULL, choices = c("能" = '1', 
+                                                     "不能" = '2')
+      )
+      
+      updateRadioButtons(session, "Q4",
+                         label = "1-非常清晰  5-非常不清晰:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q5",
+                         label = "1-非常消极  5-非常积极:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q6",
+                         label = "1-非常弱  5-非常强:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q7",
+                         label = "1-非常悲观  5-非常乐观:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q8",
+                         label = "1-非常不好看  5-非常好看:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q9",
+                         label = "1-一点都不悲惨  5-非常悲惨:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q10",
+                         label = "1-一点都不需要  5-非常需要:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateRadioButtons(session, "Q11",
+                         label = "1-完全没有  5-非常不适:",
+                         inline = TRUE,
+                         choices= c(
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           "5" = "5")
+      )
+      
+      updateTextAreaInput(session, "Q12",
+                          label = "如果您有任何反馈请填入下方；如没有，可直接跳过该题。",
+                          value = "",
+                          placeholder = "请输入"
+      )
+      
     })
   })
   
